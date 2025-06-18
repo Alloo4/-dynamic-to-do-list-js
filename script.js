@@ -1,37 +1,27 @@
+// Wait until the DOM content is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Select DOM elements
     const addButton = document.getElementById('add-task-btn');
     const taskInput = document.getElementById('task-input');
     const taskList = document.getElementById('task-list');
 
-    // Load tasks from localStorage
+    // Load tasks from Local Storage on page load
     loadTasks();
 
-    // Add task via button click
-    addButton.addEventListener('click', () => {
-        const taskText = taskInput.value.trim();
-        if (taskText) {
-            addTask(taskText);
-            taskInput.value = '';
-        } else {
-            alert('Please enter a task.');
+    // Function to add a new task
+    function addTask(taskText = null, save = true) {
+        // If no argument passed, use value from input
+        if (!taskText) {
+            taskText = taskInput.value.trim();
         }
-    });
 
-    // Add task via Enter key
-    taskInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            const taskText = taskInput.value.trim();
-            if (taskText) {
-                addTask(taskText);
-                taskInput.value = '';
-            } else {
-                alert('Please enter a task.');
-            }
+        // Check if input is empty
+        if (taskText === '') {
+            alert('Please enter a task');
+            return;
         }
-    });
 
-    // Function to add a task to the list
-    function addTask(taskText, save = true) {
+        // Create list item and remove button
         const li = document.createElement('li');
         li.textContent = taskText;
 
@@ -39,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         removeBtn.textContent = 'Remove';
         removeBtn.className = 'remove-btn';
 
-        // Remove task on click
-        removeBtn.onclick = () => {
+        // Remove task on button click
+        removeBtn.onclick = function () {
             taskList.removeChild(li);
             removeFromLocalStorage(taskText);
         };
@@ -48,28 +38,42 @@ document.addEventListener('DOMContentLoaded', () => {
         li.appendChild(removeBtn);
         taskList.appendChild(li);
 
+        // Clear input field
+        taskInput.value = '';
+
+        // Save to Local Storage
         if (save) {
             saveToLocalStorage(taskText);
         }
     }
 
-    // Save task to localStorage
-    function saveToLocalStorage(task) {
-        const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        tasks.push(task);
-        localStorage.setItem('tasks', JSON.stringify(tasks));
+    // Function to save task to Local Storage
+    function saveToLocalStorage(taskText) {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        storedTasks.push(taskText);
+        localStorage.setItem('tasks', JSON.stringify(storedTasks));
     }
 
-    // Remove task from localStorage
-    function removeFromLocalStorage(task) {
-        let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        tasks = tasks.filter(t => t !== task);
-        localStorage.setItem('tasks', JSON.stringify(tasks));
+    // Function to remove task from Local Storage
+    function removeFromLocalStorage(taskText) {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        const updatedTasks = storedTasks.filter(task => task !== taskText);
+        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     }
 
-    // Load tasks on page load
+    // Function to load tasks from Local Storage
     function loadTasks() {
         const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
         storedTasks.forEach(task => addTask(task, false));
     }
+
+    // Add event listener for button click
+    addButton.addEventListener('click', () => addTask());
+
+    // Add event listener for pressing Enter key
+    taskInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            addTask();
+        }
+    });
 });
